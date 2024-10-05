@@ -11,6 +11,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -24,6 +25,7 @@ public class MainManager : MonoBehaviour
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
+        AddPoint(0);
         
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
@@ -35,6 +37,10 @@ public class MainManager : MonoBehaviour
                 brick.PointValue = pointCountArray[i];
                 brick.onDestroyed.AddListener(AddPoint);
             }
+        }
+
+        if (!string.IsNullOrEmpty(GameManager.Instance.playerName)){
+            bestScoreText.text = $"Best Score : {GameManager.Instance.playerName} : {GameManager.Instance.highestScore}";
         }
     }
 
@@ -59,18 +65,30 @@ public class MainManager : MonoBehaviour
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
+            else if (Input.GetKeyDown(KeyCode.Escape)){
+                SceneManager.LoadScene(0);
+            }
         }
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"Score : {GameManager.Instance.inputNameText} : {m_Points}";
     }
 
     public void GameOver()
     {
+        UpdateHighestScore();
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    public void UpdateHighestScore(){
+        if (m_Points > GameManager.Instance.highestScore){
+            GameManager.Instance.highestScore = m_Points;
+            GameManager.Instance.playerName = GameManager.Instance.inputNameText;
+            GameManager.Instance.SaveFile(GameManager.Instance.highestScore, GameManager.Instance.playerName);
+        }
     }
 }
